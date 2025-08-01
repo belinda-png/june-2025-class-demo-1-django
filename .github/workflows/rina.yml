@@ -8,10 +8,11 @@ on:
 
 jobs:
   install:
-    name:  Install Dependencies
+    name: Install Dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -20,42 +21,44 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
   test:
-    name:  Run Tests
+    name: Run Tests
     runs-on: ubuntu-latest
     needs: install
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
       - name: Run tests
         run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install -r requirements.txt
-          pytest
+          pytest  # or python -m unittest discover
 
   build:
-    name: 🛠 Build Project
+    name: Build Project
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Build (optional)
+      - name: Build step
         run: |
           echo "Simulating build step — package or zip your app here"
+          # Example: python setup.py sdist bdist_wheel
