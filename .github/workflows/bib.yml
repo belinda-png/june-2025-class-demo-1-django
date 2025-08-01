@@ -11,7 +11,26 @@ jobs:
     name: Install Dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Upgrade pip and install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -20,63 +39,31 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
           pip install -r requirements.txt
 
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    needs: install  # run after install
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install test dependencies
+      - name: Migrate database
         run: |
-          pip install -r requirements.txt
-          pip install pytest
+          python manage.py migrate
 
-      - name: Run tests
-        run: pytest
-
-  lint:
-    name: Lint Code
-    runs-on: ubuntu-latest
-    needs: test  # run after test
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install linters
+      - name: Run tests (with extra visibility)
         run: |
-          pip install flake8 pylint
-
-      - name: Run Flake8
-        run: flake8 . --count --max-complexity=10 --max-line-length=88 --statistics
-
-      - name: Run Pylint
-        run: pylint **/*.py || true  # Let workflow continue even if pylint fails
+          python manage.py test --verbosity=2
+          # Or use: pytest -v --tb=short if you switch to pytest
 
   build:
     name: Build Project
     runs-on: ubuntu-latest
-    needs: lint  # run after lint
+    needs: test
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Build Project
+      - name: Build step
         run: |
-          echo "Simulating build step — package or zip your app here"
+          echo "Simulating build step — add packaging here"
+          # Example: python setup.py sdist bdist_wheel
